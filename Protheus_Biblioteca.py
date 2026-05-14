@@ -43,10 +43,30 @@ def expand_shadow(driver, element ):
     return driver.execute_script("return arguments[0].shadowRoot", element)
 
 #funcão para confirmar a entrada do banco de dados 
-def confirmaBase(driver, wait):
+def confirmaBase(driver, wait, valor="SIGAMDI"):
     import time
     from selenium.common.exceptions import TimeoutException
+    combo = driver.find_element(
+        By.CSS_SELECTOR,
+        'wa-combobox[id="selectStartProg"]'
+    )
 
+    driver.execute_script("""
+        const host = arguments[0];
+        const valor = arguments[1];
+
+        const select = host.shadowRoot.querySelector('select');
+
+        select.value = valor;
+
+        select.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
+
+        select.dispatchEvent(new Event('input', {
+            bubbles: true
+        }));
+    """, combo, valor)
     time.sleep(2)
 
     try:
@@ -200,8 +220,10 @@ def sel_ambiente(driver, wait, amb,homologacao, retroativa=False, Data=None):
     except InvalidElementStateException:
         print("Elemento não está interagível no momento.")
 
+
+
 ################################################################################
-################################################################################ def Scriptfind(driver, item):
+################################################################################
 
 def pegar_valor_shadow(driver, host_id, target_id):
     script = """
