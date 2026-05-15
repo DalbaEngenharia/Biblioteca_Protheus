@@ -154,71 +154,101 @@ def login(driver, wait, credenciais):
     driver.switch_to.default_content()
 
 #função de seleção do ambiente 
-def sel_ambiente(driver, wait, amb,homologacao, retroativa=False, Data=None):
-    time.sleep(10)
-    try:
-        # Espera o shadow DOM
-        wa_webview = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "wa-webview")))
-        shadow = driver.execute_script("return arguments[0].shadowRoot", wa_webview)
+def sel_ambiente(driver, wait, amb,homologacao, retroativa=False, Data=None, ambiente_padrão=True):
+        time.sleep(10)
+        try:
+            if ambiente_padrão:
 
-        # Espera o iframe dentro do shadow DOM
-        iframe = shadow.find_element(By.CSS_SELECTOR, "iframe")
-        driver.switch_to.frame(iframe)
+                # Espera o shadow DOM
+                wa_webview = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "wa-webview")))
+                shadow = driver.execute_script("return arguments[0].shadowRoot", wa_webview)
 
-        # Espera inputs e botões estarem presentes
-        inputs = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "po-lookup-input"))
-        )
-        inputs_button = WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.CLASS_NAME, "po-lookup-button"))
-        )
-        print("Quantidade de inputs:", len(inputs))
+                # Espera o iframe dentro do shadow DOM
+                iframe = shadow.find_element(By.CSS_SELECTOR, "iframe")
+                driver.switch_to.frame(iframe)
 
-        time.sleep(5)
+                # Espera inputs e botões estarem presentes
+                inputs = WebDriverWait(driver, 10).until(
+                    EC.presence_of_all_elements_located((By.CLASS_NAME, "po-lookup-input"))
+                )
+                inputs_button = WebDriverWait(driver, 10).until(
+                    EC.presence_of_all_elements_located((By.CLASS_NAME, "po-lookup-button"))
+                )
+                print("Quantidade de inputs:", len(inputs))
 
-        # Se retroativa, preencher data
-        if retroativa and Data:
-            todos_inputs = driver.find_elements(By.TAG_NAME, "input")
+                time.sleep(5)
 
-            for i, campo in enumerate(todos_inputs):
-                try:
-                    valor = campo.get_attribute("value")
-                    tipo = campo.get_attribute("type")
+                # Se retroativa, preencher data
+                if retroativa and Data:
+                    todos_inputs = driver.find_elements(By.TAG_NAME, "input")
 
-                    if tipo == "text":
-                        campo.clear()
-                        campo.send_keys(Data)
-                        print("Data preenchida:", Data)
-                        break
+                    for i, campo in enumerate(todos_inputs):
+                        try:
+                            valor = campo.get_attribute("value")
+                            tipo = campo.get_attribute("type")
 
-                except:
-                    pass
-        input_amb = inputs[2]
+                            if tipo == "text":
+                                campo.clear()
+                                campo.send_keys(Data)
+                                print("Data preenchida:", Data)
+                                break
 
-        # Espera o input ficar clicável antes de interagir
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "po-lookup-input")))
-        input_amb.clear()
-        input_amb.send_keys(amb)
+                        except:
+                            pass
+                input_amb = inputs[2]
 
-        # Espera o botão ficar clicável
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "po-lookup-button")))
-        inputs_button[2].click()
-        # Submeter
-        time.sleep(5)
-        entrar = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.NAME, "submmit"))
-        )
-        entrar.click()
-        if homologacao: 
-            # Opcional: esperar um pouco até a próxima tela carregar
-            time.sleep(5)
-            pg.moveTo(1215,690)
-            pg.click()
-    except TimeoutException:
-        print("Elemento não ficou interagível no tempo esperado.")
-        
-    except InvalidElementStateException:
-        print("Elemento não está interagível no momento.")
+                # Espera o input ficar clicável antes de interagir
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "po-lookup-input")))
+                input_amb.clear()
+                input_amb.send_keys(amb)
+
+                # Espera o botão ficar clicável
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "po-lookup-button")))
+                inputs_button[2].click()
+                # Submeter
+                time.sleep(5)
+                entrar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.NAME, "submmit"))
+                )
+                entrar.click()
+            else: 
+                # pega o wa-webview
+                webview = driver.find_element(By.TAG_NAME, "wa-webview")
+
+                # pega shadow root
+                shadow_root = driver.execute_script(
+                    "return arguments[0].shadowRoot",
+                    webview
+                )
+
+                # pega iframe dentro do shadow root
+                iframe = shadow_root.find_element(By.CSS_SELECTOR, "iframe")
+
+                # entra no iframe
+                driver.switch_to.frame(iframe)
+
+                print("Entrou no iframe")
+                botao = WebDriverWait(driver, 30).until(
+                    EC.element_to_be_clickable((
+                        By.XPATH,
+                        "//span[contains(., 'Entrar')]"
+                    ))
+                )
+
+                botao.click()
+
+                print("Botão clicado")
+
+            if homologacao: 
+                # Opcional: esperar um pouco até a próxima tela carregar
+                time.sleep(5)
+                pg.moveTo(1215,690)
+                pg.click()
+        except TimeoutException:
+            print("Elemento não ficou interagível no tempo esperado.")
+            
+        except InvalidElementStateException:
+            print("Elemento não está interagível no momento.")
 
 
 
@@ -986,6 +1016,8 @@ def relatorio_consolidado(lista_notas_lancadas, lista_notas_nao_lancadas,  sem_n
             f.write("\n" + "=" * largura + "\n\n")
 
     print("\nRelatório salvo em:", arquivo_relatorio_atual)
+
+
 def Scriptfind(driver, item, retorno=False, tipo=None):
     script = """
         const selector = arguments[0];
