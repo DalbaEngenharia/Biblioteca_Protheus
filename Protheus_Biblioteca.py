@@ -355,7 +355,6 @@ def encontrar_BTN(ids, nome, qnt):
             x = id
            
             return x 
-            break
         else:
             None 
     
@@ -412,7 +411,7 @@ def funcao_tres_e_demais(driver, item, nome, qnt=0, ):
         except Exception as e2:
             print("ERRO FINAL: Não foi possível clicar no botão.", e2)
 
-def clicar_aba(driver, nome, timeout=10):
+def clicar_aba_nome(driver, nome, timeout=10):
 
     wait = WebDriverWait(driver, timeout)
 
@@ -442,6 +441,8 @@ def clicar_aba(driver, nome, timeout=10):
     """
 
     return driver.execute_script(script, nome)
+
+
 #inserir texto
 def inserir_texto(driver, id, texto, shadow=False, enter=False, quantidade=1):
     # espera elemento estar visível
@@ -620,7 +621,9 @@ def inserir_na_tabela_shadow(driver, id_tabela, coluna_index, valor, linha_index
                     key: ch, code, keyCode, which: keyCode, bubbles: true, composed: true
                 }));
 
-                await esperar(100);
+                const delay = 150 + Math.random() * 250;
+
+                await esperar(delay);
             }
 
             callback({
@@ -653,10 +656,10 @@ def esperar_existir(driver, item, nome, tempo=60):
 
     try:
         WebDriverWait(driver, tempo).until(condicao)
-        #print(f"Botão '{nome}' disponível.")
+        print(f"Botão '{nome}' disponível.")
         return True
     except TimeoutException:
-        #print(f"Botão '{nome}' não apareceu no tempo esperado.")
+        print(f"Botão '{nome}' não apareceu no tempo esperado.")
         return False
 
 def esperar_sumir_panel(driver, caption, tempo=60):
@@ -794,48 +797,6 @@ def cancelar_lancamento_de_nota(driver):
 
     print("========================================")
     print("FIM LANCAMENTO")
-
-def descer_para_proxima_na_tabela(driver, tabela_id):
-    try:
-        tabela = driver.find_element(By.ID, tabela_id)
-
-        # força foco no grid
-        driver.execute_script("arguments[0].focus();", tabela)
-        time.sleep(0.2)
-
-        # tenta send_keys nativo primeiro (mais confiável que JS em muitos casos)
-        try:
-            tabela.send_keys(Keys.ARROW_DOWN)
-            print("ArrowDown enviado via send_keys no wa-tgrid")
-            time.sleep(0.5)
-            return True
-        except Exception as e:
-            print("Falhou send_keys no wa-tgrid, tentando JS:", e)
-
-        # fallback via JS
-        driver.execute_script("""
-            const tabela = arguments[0];
-            tabela.focus();
-
-            const evento = new KeyboardEvent('keydown', {
-                key: 'ArrowDown',
-                code: 'ArrowDown',
-                keyCode: 40,
-                which: 40,
-                bubbles: true,
-                cancelable: true
-            });
-
-            tabela.dispatchEvent(evento);
-        """, tabela)
-
-        print("ArrowDown enviado via JS no wa-tgrid")
-        time.sleep(0.5)
-        return True
-
-    except Exception as e:
-        print("Erro ao descer para a próxima nota:", e)
-        return False
 
 def encerrar_sistema(driver): 
     log("Encerrando o sistema....")
@@ -1073,11 +1034,8 @@ def Scriptfind(driver, item, retorno=False, tipo=None):
     if retorno:
         primeiro = elementos[0]
 
-        if tipo == "value":
-            return primeiro["value"]
-
-        elif tipo == "caption":
-            return primeiro["caption"]
+        if tipo:
+            return primeiro[tipo]
 
         else:
             return primeiro
