@@ -1,0 +1,8 @@
+pyproject.toml
+biblioteca_protheus/Protheus_Biblioteca.py
+biblioteca_protheus/__init__.py
+biblioteca_protheus.egg-info/PKG-INFO
+biblioteca_protheus.egg-info/SOURCES.txt
+biblioteca_protheus.egg-info/dependency_links.txt
+biblioteca_protheus.egg-info/top_level.txt
+biblioteca_protheus/tabelas/tabelas_protheus.py

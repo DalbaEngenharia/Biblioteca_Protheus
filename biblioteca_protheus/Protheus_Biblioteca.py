@@ -445,7 +445,12 @@ def clicar_aba_nome(driver, nome, timeout=10):
 
 #inserir texto
 def inserir_texto(driver, id, texto, shadow=False, enter=False, quantidade=1):
-    # espera elemento estar visível
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    import time
+
     campo = WebDriverWait(driver, 20).until(
         EC.visibility_of_element_located((By.ID, id))
     )
@@ -455,36 +460,44 @@ def inserir_texto(driver, id, texto, shadow=False, enter=False, quantidade=1):
             "return arguments[0].shadowRoot", campo
         )
 
-        input_real = shadow_root.find_element(By.CSS_SELECTOR, "input, textarea")
+        input_real = shadow_root.find_element(By.CSS_SELECTOR, "input[type='text'], textarea")
 
         driver.execute_script("""
-            arguments[0].focus();
-            arguments[0].value = arguments[1];
-            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-            arguments[0].dispatchEvent(new Event('blur', { bubbles: true }));
+            const el = arguments[0];
+            const value = arguments[1];
+
+            el.focus();
+            el.value = value;
+
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            el.dispatchEvent(new Event('blur', { bubbles: true }));
+
+            el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' }));
         """, input_real, texto)
 
         elemento_envio = input_real
 
     else:
         driver.execute_script("""
-            arguments[0].focus();
-            arguments[0].value = arguments[1];
-            arguments[0].dispatchEvent(new Event('input', { bubbles: true }));
-            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-            arguments[0].dispatchEvent(new Event('blur', { bubbles: true }));
+            const el = arguments[0];
+            const value = arguments[1];
+
+            el.focus();
+            el.value = value;
+
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            el.dispatchEvent(new Event('blur', { bubbles: true }));
         """, campo, texto)
-        if enter and quantidade == 1:
-            elemento_envio = campo
+
+        elemento_envio = campo
+
+    # ENTER handling
+    if enter:
+        for _ in range(quantidade):
+            time.sleep(0.5)
             elemento_envio.send_keys(Keys.ENTER)
-        if enter and quantidade > 1: 
-            x = 0
-            while x < quantidade: 
-                time.sleep(1)
-                elemento_envio = campo
-                elemento_envio.send_keys(Keys.ENTER)
-                x = x + 1
 
 def inserir_na_tabela_shadow(driver, id_tabela, coluna_index, valor, linha_index=0, enter=False):
     print("entrou para TES")
