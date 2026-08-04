@@ -1,4 +1,5 @@
-from Biblioteca_Protheus.Protheus_Biblioteca import * 
+from biblioteca_protheus.Protheus_Biblioteca import *  
+
 def linhas_de_tabela(driver,id_tabela):
     tabela = driver.find_element(By.ID, id_tabela)
     tabela_2 = expand_shadow(driver, tabela)
