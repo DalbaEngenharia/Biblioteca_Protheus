@@ -824,12 +824,15 @@ import os
 from datetime import datetime
 
 logfile_atual = None  # guarda o arquivo desta execução
-
+def configurar_log(nome):
+    global name_file_log
+    name_file_log = nome
+    
 def log(msg):
     global logfile_atual
 
     caminho1 = r'C:\Users\gustavo.elicker\Desktop\REGISTROS\LOG'
-    caminho2 = r"C:\Users\DALBAPY\Desktop\Nova pasta\REGISTRO\LOG"
+    caminho2 = r"C:\Users\DALBAPY\Desktop\REGISTRO\LOG"
 
     if os.path.exists(caminho1):
         pasta_relatorio = caminho1
@@ -839,7 +842,7 @@ def log(msg):
     # Define o arquivo apenas uma vez por execução
     if logfile_atual is None:
         data_hoje = datetime.now().strftime('%Y-%m-%d')
-        nome_base = f"log_{data_hoje}.txt"
+        nome_base = f"log_{data_hoje}{name_file_log}.txt"
         logfile = os.path.join(pasta_relatorio, nome_base)
 
         # Se já existir, cria log_YYYY-MM-DD_2.txt, _3, _4...
@@ -992,9 +995,13 @@ def relatorio_consolidado(lista_notas_lancadas, lista_notas_nao_lancadas,  sem_n
     print("\nRelatório salvo em:", arquivo_relatorio_atual)
 
 
-def Scriptfind(driver, item, retorno=False, tipo=None):
+def Scriptfind(driver, item="*", retorno=False, tipo=None):
     script = """
-        const selector = arguments[0];
+        let selector = arguments[0];
+
+        if (selector === "padrao" || selector === "*") {
+            selector = "*";
+        }
 
         function findAllDeep(root, selector, results = []) {
             if (!root) return results;
@@ -1013,23 +1020,21 @@ def Scriptfind(driver, item, retorno=False, tipo=None):
             return results;
         }
 
-        const elements = findAllDeep(document, selector);
+        const elements = findAllDeep(document.documentElement, selector);
 
-        return elements.map(el => {
-            return {
-                tag: el.tagName.toLowerCase(),
-                id: el.id || "",
-                class: el.className || "",
-                caption: (
-                    el.getAttribute("caption") ||
-                    (el.shadowRoot && el.shadowRoot.innerText) ||
-                    el.innerText ||
-                    el.textContent ||
-                    ""
-                ).trim(),
-                value: el.value || ""
-            };
-        });
+        return elements.map(el => ({
+            tag: el.tagName.toLowerCase(),
+            id: el.id || "",
+            class: el.className || "",
+            caption: (
+                el.getAttribute("caption") ||
+                (el.shadowRoot && el.shadowRoot.textContent) ||
+                el.innerText ||
+                el.textContent ||
+                ""
+            ).trim(),
+            value: el.value || ""
+        }));
     """
 
     elementos = driver.execute_script(script, item)
@@ -1045,12 +1050,6 @@ def Scriptfind(driver, item, retorno=False, tipo=None):
         )
 
     if retorno:
-        primeiro = elementos[0]
-
-        if tipo:
-            return primeiro[tipo]
-
-        else:
-            return primeiro
+        return elementos[0] if tipo is None else elementos[0].get(tipo)
 
     return elementos
