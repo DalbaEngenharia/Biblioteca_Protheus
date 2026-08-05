@@ -824,7 +824,7 @@ import os
 from datetime import datetime
 
 logfile_atual = None  # guarda o arquivo desta execução
-def configurar_log(nome):
+def nome_log(nome):
     global name_file_log
     name_file_log = nome
     
